@@ -27,8 +27,7 @@ pub fn sha3_256_file(filepath: &str) -> Vec<u8>
 
     let mut buffer: [u8; 4096] = [0u8; 4096];
 
-    loop
-    {
+    loop {
         let bytes_read = reader.read(&mut buffer)
             .expect("Error reading bytes");
 

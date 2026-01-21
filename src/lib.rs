@@ -20,15 +20,15 @@ pub struct Handler {
 }
 
 impl Handler {
-    pub fn new() -> Result<Self, errors::ErrorGeneratingSecureKeys> {
+    pub fn new() -> Result<Self, errors::ErrorGeneratingSecureKeys>
+    {
         oqs::init();
 
         let kem: Kem = Kem::new(oqs::kem::Algorithm::Kyber1024).unwrap();
 
         let (ct, sc) = hybrid::key_exchange(&kem).unwrap();
 
-        Ok(Handler
-            {
+        Ok(Handler {
                 stream: None,
                 kem,
                 ct,
