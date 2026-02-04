@@ -1,4 +1,3 @@
-use aes::Aes256;
 use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 use oqs::kem::{Kem, SharedSecret};
 use rand::{Rng, rng};
@@ -40,12 +39,11 @@ pub fn encrypt_data(key: &[u8], plaintext: &[u8]) -> Result<(Vec<u8>, Vec<u8>), 
 }
 
 /// Decrypt data using AES256-CBC with PKCS7 padding
-pub fn decrypt_data(aes_key: &[u8], iv: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    // Create AES256 cipher in CBC mode with PKCS7 padding for decryption
-    let cipher: Cbc<Aes256, Pkcs7> = Aes256Cbc::new_from_slices(aes_key, iv).expect("AES cipher creation failed");
+pub fn decrypt_data(key: &[u8], iv: &[u8], ciphertext: &mut [u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    // Rewrite block in-place with plaintext data (Decrypt)
+    let plaintext: &[u8] = Aes256CbcDec::new(key.into(), iv.into())
+        .decrypt_padded_mut::<Pkcs7>(ciphertext)
+        .unwrap();
 
-    // Decrypt the data
-    let decrypted_data: Vec<u8> = cipher.decrypt_vec(ciphertext)?;
-
-    Ok(decrypted_data)
+    Ok(plaintext.to_vec())
 }

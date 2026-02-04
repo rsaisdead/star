@@ -106,7 +106,7 @@ impl Handler {
 
     pub fn write(&mut self, buf: &[u8]) -> Result<(), errors::ErrorSendingData>
     {
-        let ebuf: &[u8] = &aes::Aes256(&self.cipher, buf).unwrap();
+        let ebuf: &[u8] = &aes::encrypt(&self.cipher, buf).unwrap();
 
         let buflength: &[u8] = &ebuf.len().to_ne_bytes();
 
