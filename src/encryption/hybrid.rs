@@ -1,5 +1,3 @@
-use aes::cipher::consts::U1024;
-use aes::cipher::generic_array::GenericArray;
 use aes::Aes256;
 use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 use oqs::kem::{Kem, SharedSecret};
