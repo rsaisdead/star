@@ -1,8 +1,8 @@
 use aes::Aes256;
 use block_modes::{BlockMode, Cbc};
-use block_modes::block_padding::Pkcs7;
+use block_modes::block_modes::Pkcs7;
 use oqs::kem::{Kem, SharedSecret};
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 
 type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 
@@ -23,7 +23,7 @@ pub fn key_exchange(kem: &Kem) -> Result<(Vec<u8>, SharedSecret), Box<dyn std::e
 /// Encrypt data using AES256-CBC with PKCS7 padding
 pub fn encrypt_data(aes_key: &[u8], plaintext: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
     // Generate a random IV (Initialization Vector)
-    let iv: Vec<u8> = (0..16).map(|_| thread_rng().gen()).collect(); // 16 bytes IV
+    let iv: Vec<u8> = (0..16).map(|_| rng().random()).collect(); // 16 bytes IV
 
     // Create AES256 cipher in CBC mode with PKCS7 padding
     let cipher: Cbc<Aes256, Pkcs7> = Aes256Cbc::new_from_slices(aes_key, &iv).expect("AES cipher creation failed");

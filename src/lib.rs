@@ -1,8 +1,8 @@
-use ::aes::Aes256;
 use encryption::{hash, hybrid};
 use std::{io::{Read, Write}, net::{self, TcpStream}};
 use std::mem;
 use oqs::kem::{Ciphertext, Kem, SharedSecret};
+use aes;
 
 pub mod packets;
 pub mod errors;
@@ -84,7 +84,7 @@ impl Handler {
 
         assert_eq!(remotekeyhash, keyhash);
 
-        let ciphertext = Ciphertext::new(key)?;
+        let ciphertext = Kem::ciphertext_from_bytes(&self.kem, &key).unwrap();
 
         self.kem.decapsulate(&Ciphertext::from_bytes(&key)?, &self.kem.keypair().unwrap().1)?;
         
