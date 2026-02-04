@@ -1,10 +1,13 @@
+use aes::cipher::consts::U1024;
+use aes::cipher::generic_array::GenericArray;
 use aes::Aes256;
-use block_modes::{BlockMode, Cbc};
-use block_modes::block_modes::Pkcs7;
+use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 use oqs::kem::{Kem, SharedSecret};
 use rand::{Rng, rng};
+use cbc::cipher;
 
-type Aes256Cbc = Cbc<Aes256, Pkcs7>;
+type Aes256CbcEnc = cbc::Encryptor<aes::Aes256>;
+type Aes256CbcDec = cbc::Decryptor<aes::Aes256>;
 
 /// Key Exchange (Kyber1024)
 pub fn key_exchange(kem: &Kem) -> Result<(Vec<u8>, SharedSecret), Box<dyn std::error::Error>> {
@@ -20,18 +23,22 @@ pub fn key_exchange(kem: &Kem) -> Result<(Vec<u8>, SharedSecret), Box<dyn std::e
     Ok((ciphertext_bytes, client_shared_secret))
 }
 
-/// Encrypt data using AES256-CBC with PKCS7 padding
-pub fn encrypt_data(aes_key: &[u8], plaintext: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
+/// Encrypt data using AES256-CBC
+pub fn encrypt_data(key: &[u8], plaintext: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
     // Generate a random IV (Initialization Vector)
-    let iv: Vec<u8> = (0..16).map(|_| rng().random()).collect(); // 16 bytes IV
+    let ivgen: Vec<u8> = (0..16).map(|_| rng().random()).collect(); // 16 bytes IV
+    let iv: &[u8] = &ivgen;
 
-    // Create AES256 cipher in CBC mode with PKCS7 padding
-    let cipher: Cbc<Aes256, Pkcs7> = Aes256Cbc::new_from_slices(aes_key, &iv).expect("AES cipher creation failed");
+    let plaintext_len: usize = plaintext.len();
+
+    let mut block: [u8; 1024] = [42; 1024];
 
     // Encrypt the data
-    let ciphertext_aes: Vec<u8> = cipher.encrypt_vec(plaintext);
+    let ciphertext: &[u8] = Aes256CbcEnc::new(key.into(), iv.into())
+        .encrypt_padded_mut::<Pkcs7>(&mut block, plaintext_len)
+        .unwrap();
 
-    Ok((iv, ciphertext_aes))
+    Ok((iv.to_vec(), ciphertext.to_vec()))
 }
 
 /// Decrypt data using AES256-CBC with PKCS7 padding
