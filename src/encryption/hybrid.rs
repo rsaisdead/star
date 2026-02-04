@@ -1,7 +1,6 @@
 use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 use oqs::kem::{Kem, SharedSecret};
 use rand::{Rng, rng};
-use cbc::cipher;
 
 type Aes256CbcEnc = cbc::Encryptor<aes::Aes256>;
 type Aes256CbcDec = cbc::Decryptor<aes::Aes256>;
