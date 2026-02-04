@@ -5,8 +5,7 @@
         2 -> FileStream (Files)
  */
 
-pub struct Stream
-{
+pub struct Stream {
     pub length: u64,           // Length of the full packet (All data included)
     pub req_type: u8,          // How to parse this packet
     pub hash: [u8; 32],        // SHA3 32 bytes
@@ -15,8 +14,7 @@ pub struct Stream
 }
 
 
-pub struct FileStream
-{
+pub struct FileStream {
     pub length: u64,           // Length of the full packet (All data included)
     pub req_type: u8,          // How to parse this packet
     pub filename: [u8; 256],   // Filename of the file sent

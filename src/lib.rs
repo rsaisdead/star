@@ -20,8 +20,7 @@ pub struct Handler {
 }
 
 impl Handler {
-    pub fn new() -> Result<Self, errors::ErrorGeneratingSecureKeys>
-    {
+    pub fn new() -> Result<Self, errors::ErrorGeneratingSecureKeys> {
         oqs::init();
 
         let kem: Kem = Kem::new(oqs::kem::Algorithm::Kyber1024).unwrap();
@@ -36,8 +35,7 @@ impl Handler {
             })
     }
 
-    fn send_key(&mut self) -> Result<(), errors::WritePKError>
-    {
+    fn send_key(&mut self) -> Result<(), errors::WritePKError> {
         let cipherlength: &[u8] = &self.ct.len().to_ne_bytes();
 
         self.stream.as_mut().unwrap().write(cipherlength)
@@ -54,8 +52,7 @@ impl Handler {
         Ok(())
     }
 
-    fn read_key(&mut self) -> Result<(), errors::ReadPKError>
-    {
+    fn read_key(&mut self) -> Result<(), errors::ReadPKError> {
         let mut arrkeysize: [u8; mem::size_of::<usize>()] = [0; mem::size_of::<usize>()];
 
         self.stream.as_mut().unwrap().read_exact(&mut arrkeysize)
@@ -91,8 +88,7 @@ impl Handler {
         Ok(())
     }
     
-    pub fn connect(&mut self, host: String) -> Result<(), errors::HandShakeError>
-    {
+    pub fn connect(&mut self, host: String) -> Result<(), errors::HandShakeError> {
         let stream = TcpStream::connect(host)
             .expect("Could not connect to peer");
 
@@ -104,8 +100,7 @@ impl Handler {
         Ok(())
     }
 
-    pub fn write(&mut self, buf: &[u8]) -> Result<(), errors::ErrorSendingData>
-    {
+    pub fn write(&mut self, buf: &[u8]) -> Result<(), errors::ErrorSendingData> {
         let ebuf: &[u8] = &aes::encrypt(&self.cipher, buf).unwrap();
 
         let buflength: &[u8] = &ebuf.len().to_ne_bytes();
@@ -126,8 +121,7 @@ impl Handler {
         Ok(())
     }
 
-    pub fn read(&mut self) -> Result<Vec<u8>, errors::ErrorReceivingData>
-    {
+    pub fn read(&mut self) -> Result<Vec<u8>, errors::ErrorReceivingData> {
         let mut arrbufsize: [u8; mem::size_of::<usize>()] = [0; mem::size_of::<usize>()];
 
         self.stream.as_mut().unwrap().read_exact(&mut arrbufsize)
