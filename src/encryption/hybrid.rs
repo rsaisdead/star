@@ -2,6 +2,8 @@ use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvI
 use oqs::kem::{Kem, SharedSecret};
 use rand::{Rng, rng};
 
+use crate::hash;
+
 type Aes256CbcEnc = cbc::Encryptor<aes::Aes256>;
 type Aes256CbcDec = cbc::Decryptor<aes::Aes256>;
 
@@ -20,21 +22,24 @@ pub fn key_exchange(kem: &Kem) -> Result<(Vec<u8>, SharedSecret), Box<dyn std::e
 }
 
 /// Encrypt data using AES256-CBC
-pub fn encrypt_data(key: &[u8], plaintext: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
+pub fn encrypt_data(key: &[u8], plaintext: &mut [u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     // Generate a random IV (Initialization Vector)
     let ivgen: Vec<u8> = (0..16).map(|_| rng().random()).collect(); // 16 bytes IV
     let iv: &[u8] = &ivgen;
 
-    let plaintext_len: usize = plaintext.len();
+    let mut pt: Vec<u8> = Vec::with_capacity(plaintext.len() + 32);
 
-    let mut block: [u8; 1024] = [42; 1024];
+    pt.extend_from_slice(plaintext);
+    pt.extend_from_slice(&hash::sha3_256(&pt));
+
+    let pt_len: usize = pt.len();
 
     // Encrypt the data
     let ciphertext: &[u8] = Aes256CbcEnc::new(key.into(), iv.into())
-        .encrypt_padded_mut::<Pkcs7>(&mut block, plaintext_len)
+        .encrypt_padded_mut::<Pkcs7>(&mut pt, pt_len)
         .unwrap();
 
-    Ok((iv.to_vec(), ciphertext.to_vec()))
+    Ok(ciphertext.to_vec())
 }
 
 /// Decrypt data using AES256-CBC with PKCS7 padding
